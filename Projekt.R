@@ -9,3 +9,5 @@ setwd ("C:/Users/mateu/Desktop/STUDIA MAGISTERSKIE/2 semestr/ekonometria przestr
 dane <- st_read ("wojewodztwa.shp")
 
 print (dane)
+
+colnames(dane)     
