@@ -55,9 +55,9 @@ mapa_dane_2023 <-mapa_dane %>%
   filter (Okres == 2023)
 
 ggplot(data = mapa_dane) + 
-  geom_sf(aes(fill = Skup_mleka)) +
+  geom_sf(aes(fill = Wynagrodzenie)) +
   scale_fill_gradient(low = "yellow", high = "red") +
-  labs(title = "Przemoc domowa w województwach w 2023")
+  labs(title = "Średnie Wynagrodzenie w województwach w 2023")
 
 
 #Testy autokorelacji
@@ -82,16 +82,13 @@ data$investments_outlays_pc<- gsub(",", ".", data$investments_outlays_pc)
 data$investments_outlays_pc <- as.numeric(data$investments_outlays_pc)
 
 
-
-
-
-moran.test(dane$hotele, lw)
+moran.test(dane$prod_mleka, lw)
 
 #wyres rozrzutu Morana
 
-moran.plot(dane$Skup_mleka, lw, labels = FALSE, pch = 20,
-           xlab = "rozwody", 
-           ylab = "Przestrzenne opóźnienie rozwodów")
+moran.plot(dane$prod_mleka, lw, labels = FALSE, pch = 20,
+           xlab = "Produkcja mleka", 
+           ylab = "Przestrzenne opóźnienie produkcji mleka")
 
 #Local moran (lisa)
 
@@ -103,7 +100,7 @@ print(dane)
 
 #Globalna statystyka Geary's C
 
-geary.test(dane$Pow_rol, lw)
+geary.test(dane$prod_mleka, lw)
 
 #Lokalna statystyka Geayrego C
 
@@ -156,28 +153,26 @@ W.listw <- nb2listw (neighbors, style = "W")
 
 
 #model statystyczny
-model_stat <- lm(
-  Pow_rol~
-    Zwierz_lowna+
-    prod_mleka,
 
+model_stat <- lm(
+  prod_mleka~
+    Bydło+
+    Skup_mleka+
+    Lasy+
+    Wynagrodzenie,
+  
   data = dane_std)
 
 summary(model_stat)
 
-model_best_stat <- step(model_stat, direction = "backward")
-
-summary(model_best_stat)
-
-
 
 #test morgana
-moran_test <- moran.test(residuals(model_best_stat), W.listw, zero.policy = TRUE)
+moran_test <- moran.test(residuals(model_stat1), W.listw, zero.policy = TRUE)
 print(moran_test)
 
 #LM test
+lm.LMtests(model_stat1, W.listw, test = "all", zero.policy = TRUE)
 
-lm.LMtests(model_best_stat, W.listw, test = "all", zero.policy = TRUE)
 
 
 
