@@ -11,6 +11,8 @@ install.packages("spdep")
 install.packages("readxl")
 install.packages("spatialreg")
 install.packages("naniar")
+install.packages("tibble")
+install.packages("tidyr")
 
 #pakiety do załadowania:
 
@@ -21,6 +23,9 @@ library(ggplot2)
 library(spatialreg)
 library(readxl)
 library(naniar)
+library(tibble)
+library(tidyr)
+
 # setwd ("C:/Users/mateu/Desktop/STUDIA MAGISTERSKIE/2 semestr/ekonometria przestrzenna/projekt/Ekonometria_Przestrzenna")
 
 
@@ -167,6 +172,34 @@ print(moran_test)
 
 #LM test
 lm.LMtests(model_stat1, W.listw, test = "all", zero.policy = TRUE)
+
+#4. Wstępna analiza danych (analiza opisowa)
+# Braki danych
+colSums(is.na(dane)) #przygotowana liczba braków w każdej kolumnie
+
+# wykrycie obserwacji odstających (IQR)
+out_iqr <- function(x) {
+  which(x < quantile(x, 0.25, na.rm = TRUE) - 1.5 * IQR(x, na.rm = TRUE) |
+          x > quantile(x, 0.75, na.rm = TRUE) + 1.5 * IQR(x, na.rm = TRUE))
+}
+numeric_data <- dane %>% dplyr::select(where(is.numeric))
+
+# Zastosowanie funkcji do każdej zmiennej
+outliers <- lapply(numeric_data, out_iqr)
+
+# wyniki
+outliers_df <- tibble::tibble(
+  Zmienna = names(outliers),
+  Odstające_obs = sapply(outliers, function(x) {
+    if (length(x) == 0) {
+      "Brak"
+    } else {
+      paste(x, collapse = ", ")}}))
+print(outliers_df, n = Inf)
+
+#2.6. Obliczenie podstawowych statystyk opisowych 
+#2.7. Analiza korelacji między zmiennymi ilościowymi 
+#2.8. Wykresy: histogramy, wykresy rozrzutu, gęstości 
 
 
 # 6. Modelowanie ekonometryczne
