@@ -1,8 +1,8 @@
 #***Projekt zaliczeniowy - Ekonometria Przestrzenna***#
   #Matueusz Pałczyński
   #Kacper Bareja s206756
-  #Jakub Zator
-  #Patryk
+  #Jakub Zator s202288
+  #Patryk Piotrowski 
 
 #Potrzebne pakiety do zainstalowania:
 
@@ -13,6 +13,8 @@ install.packages("spatialreg")
 install.packages("naniar")
 install.packages("tibble")
 install.packages("tidyr")
+install.packages("e1071")
+install.packages("corrplot")
 
 #pakiety do załadowania:
 
@@ -25,6 +27,8 @@ library(readxl)
 library(naniar)
 library(tibble)
 library(tidyr)
+library(e1071)
+library(corrplot)
 
 # setwd ("C:/Users/mateu/Desktop/STUDIA MAGISTERSKIE/2 semestr/ekonometria przestrzenna/projekt/Ekonometria_Przestrzenna")
 
@@ -197,10 +201,74 @@ outliers_df <- tibble::tibble(
       paste(x, collapse = ", ")}}))
 print(outliers_df, n = Inf)
 
-#2.6. Obliczenie podstawowych statystyk opisowych 
-#2.7. Analiza korelacji między zmiennymi ilościowymi 
-#2.8. Wykresy: histogramy, wykresy rozrzutu, gęstości 
+# Obliczenie podstawowych statystyk opisowych 
 
+numeric_data <- dane %>% dplyr::select(where(is.numeric))
+statystyki <- data.frame(
+  Zmienna = names(numeric_data),
+  Srednia = sapply(numeric_data, mean, na.rm = TRUE),
+  Mediana = sapply(numeric_data, median, na.rm = TRUE),
+  Minimum = sapply(numeric_data, min, na.rm = TRUE),
+  Maksimum = sapply(numeric_data, max, na.rm = TRUE),
+  Odch_std = sapply(numeric_data, sd, na.rm = TRUE),
+  Asymetria = sapply(numeric_data, skewness, na.rm = TRUE)
+)
+print(statystyki, row.names = FALSE)
+
+# Analiza korelacji między zmiennymi ilościowymi
+
+# Wybór tylko zmiennych ilościowych (numerycznych)
+numeric_data <- dane %>% dplyr::select(where(is.numeric))
+
+# Obliczenie macierzy korelacji Pearsona
+cor_matrix <- cor(numeric_data, use = "complete.obs", method = "pearson")
+cor_matrix_rounded <- round(cor_matrix, 2)
+
+# 4. Wyświetlenie macierzy korelacji oraz wizualizacja korelacji w formie mapy ciepła
+print(cor_matrix_rounded) #wyniki macierzy
+corrplot(cor_matrix, method = "color", type = "upper", tl.cex = 0.8, tl.col = "black") #mapa ciepła
+
+# Wykresy: histogramy, wykresy rozrzutu, gęstości 
+
+# Wybór zmiennych liczbowych
+numeric_data <- dane %>% select(where(is.numeric))
+
+# Histogramy
+numeric_data %>%
+  pivot_longer(cols = everything(), names_to = "Zmienna", values_to = "Wartosc") %>%
+  ggplot(aes(x = Wartosc)) +
+  geom_histogram(bins = 15, fill = "steelblue", color = "black") +
+  facet_wrap(~Zmienna, scales = "free", ncol = 4) +
+  labs(title = "Histogramy zmiennych ilościowych", x = "Wartość", y = "Liczba obserwacji") +
+  theme_minimal()
+
+# Wykresy gęstości
+numeric_data %>%
+  pivot_longer(cols = everything(), names_to = "Zmienna", values_to = "Wartosc") %>%
+  ggplot(aes(x = Wartosc)) +
+  geom_density(fill = "skyblue", alpha = 0.6) +
+  facet_wrap(~Zmienna, scales = "free", ncol = 4) +
+  labs(title = "Wykresy gęstości zmiennych", x = "Wartość", y = "Gęstość") +
+  theme_minimal()
+
+# Wykresy rozrzutu względem produkcji mleka
+dane_long <- dane %>%
+  select(prod_mleka, where(is.numeric)) %>%
+  pivot_longer(
+    cols = -prod_mleka,
+    names_to = "Zmienna",
+    values_to = "Wartosc"
+  )
+
+# Wykres rozrzutu z linią trendu
+ggplot(dane_long, aes(x = Wartosc, y = prod_mleka)) +
+  geom_point(color = "steelblue", size = 1.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  facet_wrap(~Zmienna, scales = "free_x", ncol = 4) +
+  labs(title = "Wykresy rozrzutu względem produkcji mleka",
+       x = "Wartość zmiennej",
+       y = "Produkcja mleka") +
+  theme_minimal()
 
 # 6. Modelowanie ekonometryczne
 # Budowa modelu przestrzennego: SAR
