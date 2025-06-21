@@ -27,10 +27,8 @@ library(naniar)
 # tworzenie macierzy sąsiedztwa
 
 woj_shp <- st_read ("wojewodztwa.shp")
-
-dane <- read.csv("model3.csv", sep=";", header=TRUE)
-
-mapa_dane <- merge(woj_shp, dane, by.x = "JPT_NAZWA_", by.y = "JPT_NAZWA_")
+dane_model3 <- read.csv("model3.csv", sep=";", header=TRUE)
+mapa_dane <- merge(woj_shp, dane_model3, by.x = "JPT_NAZWA_", by.y = "JPT_NAZWA_")
 
 str(mapa_dane$Samobojstwa)  # Sprawdzenie struktury
 unique(mapa_dane$Samobojstwa)  # Podejrzenie unikalnych wartości
@@ -60,10 +58,6 @@ write.csv (w_norm, "macierz_sąsiedztwa_województwa_std.csv", row.names = FALSE
 
 
 #Wizualizacja danych na mapach
-
-mapa_dane_2023 <-mapa_dane %>%
-  filter (Okres == 2023)
-
 ggplot(data = mapa_dane) + 
   geom_sf(aes(fill = Wynagrodzenie)) +
   scale_fill_gradient(low = "yellow", high = "red") +
@@ -71,7 +65,7 @@ ggplot(data = mapa_dane) +
 
 
 #Testy autokorelacji
-
+dane <- read.csv("model3.csv", sep=";", header=TRUE)
 mapa_dane <- merge(woj_shp, dane, by.x = "JPT_NAZWA_", by.y = "JPT_NAZWA_")
 
 nb <- poly2nb (woj_shp)
@@ -84,10 +78,6 @@ print (woj_shp$JPT_NAZWA_)
 all.equal(woj_shp$JPT_NAZWA_, dane$JPT_NAZWA_)
 
 #Test Morana I
-data$investments_outlays_pc<- gsub(",", ".", data$investments_outlays_pc)
-data$investments_outlays_pc <- as.numeric(data$investments_outlays_pc)
-
-
 moran.test(dane$prod_mleka, lw)
 
 #wyres rozrzutu Morana
@@ -172,7 +162,7 @@ summary(model_stat)
 
 
 #test morgana
-moran_test <- moran.test(residuals(model_stat1), W.listw, zero.policy = TRUE)
+moran_test <- moran.test(residuals(model_stat), W.listw, zero.policy = TRUE)
 print(moran_test)
 
 #LM test
