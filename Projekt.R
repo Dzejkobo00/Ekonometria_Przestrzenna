@@ -1,22 +1,34 @@
+#***Projekt zaliczeniowy - Ekonometria Przestrzenna***#
+  #Matueusz Pałczyński
+  #Kacper Bareja s206756
+  #Jakub Zator
+  #Patryk
+
+#Potrzebne pakiety do zainstalowania:
+
 install.packages("sf")  # jeśli nie masz jeszcze pakietu; wystarczy zainstalować raz i odtwarzać z biblioteki
-library(sf)     # to trzeba zawsze ładować
 install.packages("spdep")
-install.packages ("readxl")
+install.packages("readxl")
+install.packages("spatialreg")
+install.packages("naniar")
+
+#pakiety do załadowania:
+
+library(sf)
 library(spdep)
 library(dplyr)
 library(ggplot2)
 library(spatialreg)
 library(readxl)
-
-setwd ("C:/Users/mateu/Desktop/STUDIA MAGISTERSKIE/2 semestr/ekonometria przestrzenna/projekt/Ekonometria_Przestrzenna")
+library(naniar)
+# setwd ("C:/Users/mateu/Desktop/STUDIA MAGISTERSKIE/2 semestr/ekonometria przestrzenna/projekt/Ekonometria_Przestrzenna")
 
 
 # tworzenie macierzy sąsiedztwa
 
-
 woj_shp <- st_read ("wojewodztwa.shp")
 
-kartogram <- read.csv("model3.csv", sep=";", header=TRUE)
+dane <- read.csv("model3.csv", sep=";", header=TRUE)
 
 mapa_dane <- merge(woj_shp, dane, by.x = "JPT_NAZWA_", by.y = "JPT_NAZWA_")
 
@@ -47,8 +59,6 @@ print (w_norm)
 write.csv (w_norm, "macierz_sąsiedztwa_województwa_std.csv", row.names = FALSE)
 
 
-
-
 #Wizualizacja danych na mapach
 
 mapa_dane_2023 <-mapa_dane %>%
@@ -61,10 +71,6 @@ ggplot(data = mapa_dane) +
 
 
 #Testy autokorelacji
-
-woj_shp <- st_read ("wojewodztwa.shp")
-
-dane <- read.csv("model3.csv", sep=";", header=TRUE)
 
 mapa_dane <- merge(woj_shp, dane, by.x = "JPT_NAZWA_", by.y = "JPT_NAZWA_")
 
@@ -151,7 +157,6 @@ neighbors <- poly2nb (woj_shp)
 W.listw <- nb2listw (neighbors, style = "W")
 
 
-
 #model statystyczny
 
 model_stat <- lm(
@@ -174,9 +179,35 @@ print(moran_test)
 lm.LMtests(model_stat1, W.listw, test = "all", zero.policy = TRUE)
 
 
+#6. Modelowanie ekonometryczne
+#Budowa modelu przestrzennego: SAR
 
+nb <- poly2nb(woj_shp)
+W.listw <- nb2listw(nb, style = "W", zero.policy = TRUE)
 
+# Model SAR
+model_sar <- lagsarlm(
+  prod_mleka ~
+    Bydło +
+    Skup_mleka +
+    Lasy +
+    Wynagrodzenie,
+  data = dane_std,
+  listw = W.listw,
+  zero.policy = TRUE
+)
+summary(model_sar)
 
+# Model SEM
+model_sem <- errorsarlm(
+  formula = prod_mleka ~ Bydło + Skup_mleka + Lasy + Wynagrodzenie,
+  data = dane_std,
+  listw = W.listw,
+  zero.policy = TRUE
+)
+
+# Podsumowanie wyników modelu SEM
+summary(model_sem)
 
 
 
