@@ -169,8 +169,8 @@ print(moran_test)
 lm.LMtests(model_stat1, W.listw, test = "all", zero.policy = TRUE)
 
 
-#6. Modelowanie ekonometryczne
-#Budowa modelu przestrzennego: SAR
+# 6. Modelowanie ekonometryczne
+# Budowa modelu przestrzennego: SAR
 
 nb <- poly2nb(woj_shp)
 W.listw <- nb2listw(nb, style = "W", zero.policy = TRUE)
@@ -200,7 +200,17 @@ model_sem <- errorsarlm(
 summary(model_sem)
 
 
+# Model SAC (Spatial Durbin Model) – rozszerzenie SAR
+model_sac <- lagsarlm(
+  formula = prod_mleka ~ Bydło + Skup_mleka + Lasy + Wynagrodzenie,
+  data = dane_std,
+  listw = W.listw,
+  type = "mixed",     
+  zero.policy = TRUE
+)
 
+# Wyświetlenie wyników
+summary(model_sac)
 
 
 
