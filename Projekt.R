@@ -1,8 +1,7 @@
 #***Projekt zaliczeniowy - Ekonometria Przestrzenna***#
-  #Matueusz Pałczyński
+  #Matueusz Pałczyński s206741
   #Kacper Bareja s206756
   #Jakub Zator s202288
-  #Patryk Piotrowski 
 
 #Potrzebne pakiety do zainstalowania:
 
